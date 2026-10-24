@@ -1,32 +1,44 @@
-# Basic Network Sniffer — Network Traffic Analysis Tool
 
-A beginner-friendly Python command-line tool that passively captures IPv4 packets and displays metadata for TCP, UDP, and ICMP traffic. It is designed for learning TCP/IP fundamentals and troubleshooting in an authorized lab.
+# Network Traffic Analyzer
 
-> **Authorization:** Use only on systems and networks you own or have explicit permission to monitor. Packet capture may require administrator/root privileges.
+A Python-based command-line tool for passive IPv4 network traffic analysis using Scapy. It captures packets on a selected network interface and displays metadata for TCP, UDP, and ICMP traffic.
+
+This project demonstrates practical knowledge of Python, TCP/IP networking, packet analysis, Linux networking tools, and unit testing.
+
+> **Authorized use only:** Capture traffic only on systems and networks you own or have explicit permission to monitor. Live packet capture may require elevated privileges.
 
 ## Features
 
-- Live packet capture through Scapy
+- Live packet capture using Scapy
 - IPv4 source and destination addresses
-- TCP/UDP source and destination ports
-- ICMP identification (ports shown as `N/A`)
-- Protocol filtering: `all`, `tcp`, `udp`, `icmp`
-- Interface listing and selection
-- Packet-count limit
-- Timestamp and packet size
-- Unit tests using synthetic packets; tests do not capture or transmit traffic
+- TCP and UDP source and destination ports
+- ICMP packet identification (ports displayed as `N/A`)
+- Protocol filtering: `all`, `tcp`, `udp`, and `icmp`
+- Network interface listing and selection
+- Configurable packet-count limit
+- Packet processing timestamp and packet size
+- Unit tests using synthetic packets
+- Error handling for missing dependencies, invalid interfaces, and capture failures
+
+## Technologies
+
+- **Language:** Python
+- **Packet analysis:** Scapy
+- **Networking:** IPv4, TCP, UDP, ICMP
+- **Testing:** Python `unittest`
+- **Platforms:** Windows with compatible packet-capture support; Kali Linux and other compatible Linux distributions
 
 ## Requirements
 
-- Python 3.10 or newer recommended
-- Kali Linux or another compatible Linux distribution
+- Python 3.10 or newer
 - Scapy
-- Packet-capture privileges for live capture
+- Npcap on Windows or compatible packet-capture support on Linux
+- Appropriate permissions for live packet capture
 
-## Project layout
+## Project Structure
 
 ```text
-basic-network-sniffer/
+network-traffic-analyzer/
 ├── sniffer.py
 ├── requirements.txt
 ├── README.md
@@ -38,42 +50,85 @@ basic-network-sniffer/
     └── README.md
 ```
 
-## Install on Kali Linux
+## Installation
 
-The distribution package is usually the simplest option:
+### Option 1: Kali Linux
+
+Install Scapy using the distribution package manager:
 
 ```bash
 sudo apt update
 sudo apt install -y python3-scapy
 ```
 
-Check Scapy:
+Verify the installation:
 
 ```bash
 python3 -c "from scapy.all import sniff; print('Scapy installed successfully')"
 ```
 
-Alternatively, use a virtual environment if your Python setup supports it:
+### Option 2: Python virtual environment
+
+From the project directory:
 
 ```bash
 sudo apt install -y python3-venv
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Do not use `sudo pip` or force-install packages into Kali's externally managed system Python.
+Avoid using `sudo pip` or forcing packages into Kali's externally managed system Python.
+
+### Option 3: Windows
+
+Install Python and Npcap if required for packet capture. Open PowerShell in the project directory and run:
+
+```powershell
+py -m pip install -r requirements.txt
+```
+
+List the available interfaces:
+
+```powershell
+py sniffer.py --list-interfaces
+```
+
+Some Windows interfaces require elevated privileges or additional packet-capture configuration.
 
 ## Usage
 
-Run from the project directory.
+Run commands from the project directory.
 
-List interfaces:
+### Display help
+
+Linux:
+
+```bash
+python3 sniffer.py --help
+```
+
+Windows:
+
+```powershell
+py sniffer.py --help
+```
+
+### List available interfaces
+
+Linux:
 
 ```bash
 sudo python3 sniffer.py --list-interfaces
 ```
+
+Windows:
+
+```powershell
+py sniffer.py --list-interfaces
+```
+
+### Capture packets
 
 Capture supported protocols on the default interface:
 
@@ -81,7 +136,7 @@ Capture supported protocols on the default interface:
 sudo python3 sniffer.py
 ```
 
-Capture only TCP, UDP, or ICMP:
+Capture only a selected protocol:
 
 ```bash
 sudo python3 sniffer.py --protocol tcp
@@ -95,29 +150,32 @@ Capture up to 20 packets:
 sudo python3 sniffer.py --count 20
 ```
 
-Select a specific interface (replace `eth0` with a name shown by `--list-interfaces`):
+Select a specific interface:
 
 ```bash
 sudo python3 sniffer.py --interface eth0 --protocol tcp
 ```
 
-Stop an unlimited capture with `Ctrl+C`.
+Replace `eth0` with an exact interface name returned by `--list-interfaces`.
 
-## Example output
+Press `Ctrl+C` to stop an unlimited capture.
 
-The values below are illustrative, not results from a real capture:
+## Example Output
+
+The following output is illustrative and is not a claim of a verified live capture:
 
 ```text
 ====================================================================
-BASIC NETWORK SNIFFER
+NETWORK TRAFFIC ANALYZER
 ====================================================================
-Interface   : lo
-Protocol    : ICMP
-Packet limit: Unlimited
-Press Ctrl+C to stop. Capture only authorized traffic.
+Interface    : lo
+Protocol     : ICMP
+Packet limit : Unlimited
+Press Ctrl+C to stop capture.
+Monitor only networks you own or have permission to inspect.
 ====================================================================
 --------------------------------------------------------------------
-Time        : 2026-10-24 18:30:12 IST
+Timestamp   : 2026-10-24T18:30:12+05:30
 Protocol    : ICMP
 Source IP   : 127.0.0.1
 Destination : 127.0.0.1
@@ -126,113 +184,116 @@ Dest Port   : N/A
 Packet Size : 84 bytes
 ```
 
-## Safe lab testing
+Actual timestamps, packet sizes, interfaces, and packet addresses depend on the capture environment.
 
-Open two terminals. In terminal 1, list interfaces and start the sniffer on the appropriate interface:
+## Safe Lab Testing
+
+Perform packet-capture experiments only in an authorized lab.
+
+### ICMP test on Linux
+
+In terminal 1:
 
 ```bash
-sudo python3 sniffer.py --list-interfaces
 sudo python3 sniffer.py --interface lo --protocol icmp
 ```
 
-In terminal 2, generate local ICMP traffic:
+In terminal 2:
 
 ```bash
 ping -c 4 127.0.0.1
 ```
 
-For TCP traffic, use an interface that can see the traffic and make an ordinary HTTPS request:
+The loopback interface is used for local traffic. Depending on the operating system and capture backend, the number and representation of observed packets may vary.
+
+### Generate ordinary network traffic
+
+For a TCP test, use a suitable interface and make an ordinary HTTPS request:
 
 ```bash
 curl --head https://example.com
 ```
 
-For DNS, run:
+For DNS traffic:
 
 ```bash
 nslookup example.com
 ```
 
-DNS commonly uses UDP, but may use TCP in some situations. Localhost traffic normally appears on `lo`; traffic to other machines uses a different interface. Do not assume a capture will see traffic that is not visible to the selected interface.
+DNS commonly uses UDP but can also use TCP. Select the interface that can observe the generated traffic; traffic visibility depends on the network topology and capture configuration.
 
-## Tests
+## Running Tests
 
-Tests build synthetic Scapy packets and do not need root privileges or live network access.
-
-With Scapy installed:
+Unit tests use synthetic packets and do not require root privileges or live network access.
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
+On Windows:
+
+```powershell
+py -m unittest discover -s tests -v
+```
+
+The current test suite covers packet metadata extraction, protocol handling, parser defaults, and invalid packet-count arguments.
+
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[Start] --> B[Parse CLI arguments]
-    B --> C[Validate interface and count]
-    C --> D[Apply protocol capture filter]
-    D --> E[Capture packet with Scapy]
-    E --> F{Supported IPv4 protocol?}
-    F -- No --> G[Ignore packet]
-    F -- Yes --> H[Extract IPs, ports, size, timestamp]
-    H --> I[Display metadata]
-    G --> J{Stop requested or count reached?}
-    I --> J
-    J -- No --> E
-    J -- Yes --> K[Stop]
-```
+1. **Argument parsing:** Reads the selected interface, protocol filter, and packet limit.
+2. **Interface validation:** Checks the requested interface against the available interfaces.
+3. **Packet capture:** Scapy captures packets using the selected interface and filter.
+4. **Metadata extraction:** Identifies supported IPv4 TCP, UDP, and ICMP packets.
+5. **Output:** Displays packet metadata without printing application payload contents.
+6. **Testing:** Unit tests validate packet parsing and argument handling using synthetic inputs.
 
 ## Limitations
 
-- This version analyzes IPv4 TCP, UDP, and ICMP metadata only.
-- It does not decrypt HTTPS/TLS traffic.
-- It does not capture every packet on a switched network; visibility depends on the interface, network topology, permissions, and capture configuration.
-- The timestamp is the time the packet callback processes the packet, not necessarily a hardware capture timestamp.
-- It does not save PCAP files or inspect application payloads.
-- BPF capture filters require compatible packet-capture support. If unavailable, the program reports the capture error.
+- Supports IPv4 TCP, UDP, and ICMP metadata only.
+- Does not decrypt HTTPS/TLS traffic.
+- Does not save PCAP files or inspect application payloads.
+- Does not guarantee visibility into every packet on a network.
+- Packet timestamps represent callback processing time, not necessarily hardware capture time.
+- Capture filters depend on compatible packet-capture support.
+- Live capture behavior depends on interface selection, permissions, and operating-system configuration.
 
 ## Troubleshooting
 
-**Permission denied:** Run live capture with `sudo` on Linux.
+**Scapy is missing**
 
-**Interface not found:** Run `sudo python3 sniffer.py --list-interfaces` and copy an exact interface name.
+Install the project dependencies or use the appropriate operating-system package manager.
 
-**No packets appear:** Confirm the correct interface and protocol, generate test traffic, and check your lab/network setup.
+**Permission denied**
 
-**BPF filter error:** Check that libpcap/BPF support is installed and available in the environment.
+Use appropriate privileges for live packet capture on Linux or Windows.
 
-**Scapy missing:** Install `python3-scapy` through Kali's package manager or install requirements in a virtual environment.
+**Interface not found**
 
-## Future enhancements
+Run `--list-interfaces` and copy the exact interface name.
 
-- CSV/JSON metadata export
+**No packets appear**
+
+Check the interface, protocol filter, permissions, and whether suitable test traffic is being generated.
+
+**Capture-filter error**
+
+Check the availability of Npcap, libpcap, or other compatible packet-capture support.
+
+## Future Enhancements
+
+- CSV or JSON metadata export
 - Protocol counters and traffic summaries
-- Optional time-based capture duration
+- Time-based capture duration
 - IPv6 support
-- PCAP export (with explicit user configuration)
-- Optional graphical interface
+- Optional PCAP export
+- Graphical interface
 
-## Resume description
+## Resume Description
 
-**Basic Network Sniffer — Python, Scapy, TCP/IP, Linux**
-- Built a Python-based packet sniffer to inspect IPv4 traffic and display source/destination addresses, ports, protocol types, timestamps, and packet sizes.
-- Implemented TCP, UDP, and ICMP filtering with interface selection and configurable packet limits.
-- Tested packet parsing using synthetic unit tests and documented authorized lab validation procedures.
+**Network Traffic Analyzer | Python, Scapy, TCP/IP**
 
-Only list testing and features you have personally verified.
+- Developed a Python command-line tool to analyze IPv4 TCP, UDP, and ICMP packet metadata.
+- Implemented protocol filtering, interface selection, packet-count limits, and structured packet output.
+- Created unit tests using synthetic packets and documented authorized packet-capture testing procedures.
 
-## GitHub publishing
-
-Create an empty repository on GitHub, then run:
-
-```bash
-git init
-git add .
-git commit -m "Build basic network sniffer"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/basic-network-sniffer.git
-git push -u origin main
-```
-
-Replace `YOUR_USERNAME` with your GitHub username. If Git asks for identity, configure your name and email using `git config --global user.name` and `git config --global user.email`.
+Only claim functionality and testing that you have personally verified.
